@@ -1,70 +1,174 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+// import * as React from 'react';
+// import { NavigationContainer } from '@react-navigation/native';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+// import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// import HomeScreen from './HomeScreen';
+// import Messages from './Messages';
+// import Confirmation from './confirmation';
+// import Requests from './Requests';
+// import DriverDetails from '../DriverDetails';
+// import TripDetails from '../TripDetails';
+// import ChatScreen from '../ChatScreen';  // Ensure ChatScreen is imported
+// import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+// import { useColorScheme } from '@/hooks/useColorScheme';
+// import { Colors } from '@/constants/Colors';
+// import { DefaultTheme, DarkTheme } from '@react-navigation/native';
+// import Toast from 'react-native-toast-message';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+// const Tab = createBottomTabNavigator();
+// const Stack = createNativeStackNavigator();
 
-export default function HomeScreen() {
+// function RequestsStack() {
+//   return (
+//     <Stack.Navigator initialRouteName="Requests">
+//       <Stack.Screen name="Requests" component={Requests} />
+//       <Stack.Screen name="DriverDetails" component={DriverDetails} />
+//     </Stack.Navigator>
+//   );
+// }
+
+// function ConfirmationStack() {
+//   return (
+//     <Stack.Navigator initialRouteName="Confirmation">
+//       <Stack.Screen name="Confirmation" component={Confirmation} />
+//       <Stack.Screen name="TripDetails" component={TripDetails} />
+//     </Stack.Navigator>
+//   );
+// }
+
+// function MessagesStack() {
+//   return (
+//     <Stack.Navigator initialRouteName="Messages">
+//       <Stack.Screen name="Messages" component={Messages} />
+//       <Stack.Screen name="ChatScreen" component={ChatScreen} />
+//     </Stack.Navigator>
+//   );
+// }
+
+// export default function App() {
+//   const scheme = useColorScheme();
+
+//   return (
+//     <>
+//       <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+//         <Tab.Navigator
+//           screenOptions={({ route }) => ({
+//             tabBarIcon: ({ color, size }) => {
+//               let iconName;
+
+//               if (route.name === 'Home') {
+//                 iconName = 'home';
+//               } else if (route.name === 'Explore') {
+//                 iconName = 'search';
+//               } else if (route.name === 'Messages') {
+//                 iconName = 'chat';
+//               } else if (route.name === 'Confirmation') {
+//                 iconName = 'check-circle';
+//               }
+
+//               return <TabBarIcon name={iconName} color={color} size={size} />;
+//             },
+//           })}
+//           tabBarOptions={{
+//             activeTintColor: Colors[scheme].tint,
+//             inactiveTintColor: 'gray',
+//           }}
+//         >
+//           <Tab.Screen name="Home" component={HomeScreen} />
+//           <Tab.Screen name="Explore" component={RequestsStack} />
+//           <Tab.Screen name="Messages" component={MessagesStack} />
+//           <Tab.Screen name="Confirmation" component={ConfirmationStack} />
+//         </Tab.Navigator>
+//       </NavigationContainer>
+//       <Toast ref={(ref) => Toast.setRef(ref)} />
+//     </>
+//   );
+// }
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from './HomeScreen';
+import Messages from './Messages';
+import Confirmation from './confirmation';
+import Requests from './Requests';
+import DriverDetails from '../DriverDetails';
+import TripDetails from '../TripDetails';
+import ChatScreen from '../ChatScreen';  // Ensure ChatScreen is imported
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
+import { DefaultTheme, DarkTheme } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function RequestsStack() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <Stack.Navigator initialRouteName="Requests">
+      <Stack.Screen name="Requests" component={Requests} />
+      <Stack.Screen name="DriverDetails" component={DriverDetails} />
+    </Stack.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+function ConfirmationStack() {
+  return (
+    <Stack.Navigator initialRouteName="Confirmation">
+      <Stack.Screen name="Confirmation" component={Confirmation} />
+      <Stack.Screen name="TripDetails" component={TripDetails} />
+    </Stack.Navigator>);
+}
+
+function MessagesStack() {
+  return (
+    <Stack.Navigator initialRouteName="Messages">
+      <Stack.Screen name="Messages" component={Messages} />
+      <Stack.Screen name="ChatScreen" component={ChatScreen} />
+    </Stack.Navigator>
+  );
+}
+
+export default function App() {
+  const scheme = useColorScheme();
+
+  return (
+    <>
+      <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ color, size }) => {
+              let iconName;
+
+              if (route.name === 'Home') {
+                iconName = 'home';
+              } else if (route.name === 'Explore') {
+                iconName = 'search';
+              } else if (route.name === 'Messages') {
+                iconName = 'chat';
+              } else if (route.name === 'Confirmation') {
+                iconName = 'check-circle';
+              }
+
+              return <TabBarIcon name={iconName} color={color} size={size} />;
+            },
+          })}
+          tabBarOptions={{
+            activeTintColor: Colors[scheme].tint,
+            inactiveTintColor: 'gray',
+          }}
+        >
+          <Tab.Screen name="Home" component={HomeScreen} />
+          <Tab.Screen name="Explore" component={RequestsStack} />
+          <Tab.Screen name="Messages" component={MessagesStack} />
+          <Tab.Screen name="Confirmation" component={ConfirmationStack} />
+        </Tab.Navigator>
+      </NavigationContainer>
+      <Toast ref={(ref) => Toast.setRef(ref)} />
+    </>
+  );
+}
+
+
+
