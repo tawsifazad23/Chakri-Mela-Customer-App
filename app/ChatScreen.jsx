@@ -1,160 +1,270 @@
-// import React from 'react';
-// import { StyleSheet, View, Text, Button, FlatList, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, FlatList, Alert } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import EventSource from 'react-native-event-source';
+import { Ionicons } from '@expo/vector-icons';
 
-// const messages = [
-//   { id: '1', text: 'Hello!' },
-//   { id: '2', text: 'Hi! How are you?' },
-//   { id: '3', text: 'I am good, thank you!' },
-// ];
+const ChatScreen = () => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { conversation } = route.params;
+  const driverName = `${conversation.service_provider_request.service_provider.first_name} ${conversation.service_provider_request.service_provider.last_name}`;
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const flatListRef = useRef(null);
 
-// const ChatScreen = ({ route, navigation }) => {
-//   const chat = route?.params?.chat;
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        if (!token) {
+          Alert.alert('Error', 'No token found');
+          return;
+        }
 
-//   React.useLayoutEffect(() => {
-//     navigation.setOptions({
-//       headerRight: () => (
-//         <Button
-//           onPress={() => Alert.alert('Driver Confirmed')}
-//           title="Confirm Driver"
-//         />
-//       ),
-//     });
-//   }, [navigation]);
+        const eventSource = new EventSource(`${process.env.EXPO_PUBLIC_API_URL}/api/user/get-messages-customer/${conversation.id}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-//   if (!chat) {
-//     return (
-//       <View style={styles.container}>
-//         <Text style={styles.errorText}>No chat data available.</Text>
-//       </View>
-//     );
-//   }
+        eventSource.addEventListener('message', function (event) {
+          const data = JSON.parse(event.data);
+          setMessages(data);
+        });
 
-//   return (
-//     <View style={styles.container}>
-//       <FlatList
-//         data={messages}
-//         renderItem={({ item }) => <Text style={styles.message}>{item.text}</Text>}
-//         keyExtractor={(item) => item.id}
-//         contentContainerStyle={styles.messageList}
-//       />
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Type a message..."
-//       />
-//     </View>
-//   );
-// };
+        eventSource.addEventListener('error', function (error) {
+          console.error('EventSource error:', error);
+          eventSource.close();
+        });
 
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     padding: 10,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   messageList: {
-//     paddingVertical: 10,
-//   },
-//   message: {
-//     fontSize: 16,
-//     padding: 10,
-//     backgroundColor: '#f0f0f0',
-//     borderRadius: 10,
-//     marginVertical: 5,
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: '#ccc',
-//     borderRadius: 25,
-//     padding: 10,
-//     marginVertical: 10,
-//   },
-//   errorText: {
-//     fontSize: 18,
-//     color: 'red',
-//     textAlign: 'center',
-//   },
-// });
+        return () => {
+          eventSource.close();
+        };
+      } catch (error) {
+        console.error('Fetch messages error:', error);
+        Alert.alert('Error', 'Failed to fetch messages');
+      }
+    };
 
-// export default ChatScreen;
+    fetchMessages();
+  }, [conversation.id]);
 
-
-import React from 'react';
-import { StyleSheet, View, Text, Button, FlatList, TextInput, Alert } from 'react-native';
-
-const messages = [
-  { id: '1', text: 'Hello!' },
-  { id: '2', text: 'Hi! How are you?' },
-  { id: '3', text: 'I am good, thank you!' },
-];
-
-const ChatScreen = ({ route, navigation }) => {
-  const chat = route?.params?.chat;
-
-  React.useLayoutEffect(() => {
-    if (navigation) {
-      navigation.setOptions({
-        headerRight: () => (
-          <Button
-            onPress={() => Alert.alert('Driver Confirmed')}
-            title="Confirm Driver"
-          />
-        ),
-      });
+  useEffect(() => {
+    if (flatListRef.current && !userScrolledUp) {
+      flatListRef.current.scrollToEnd({ animated: true });
     }
-  }, [navigation]);
+  }, [messages]);
 
-  if (!chat) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No chat data available.</Text>
-      </View>
-    );
-  }
+  // const sendMessage = async () => {
+  //   if (message.trim()) {
+  //     try {
+  //       const token = await AsyncStorage.getItem('authToken');
+  //       if (!token) {
+  //         Alert.alert('Error', 'No token found');
+  //         return;
+  //       }
+
+  //       const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/api/user/send-message-customer/`, {
+  //         chat_id: conversation.id,
+  //         message: message,
+  //       }, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         }
+  //       });
+
+  //       if (response.status === 200) {
+  //         setMessage('');
+  //       } else {
+  //         Alert.alert('Error', 'Failed to send message');
+  //       }
+  //     } catch (error) {
+  //       console.error('Send message error:', error);
+  //       Alert.alert('Error', 'Failed to send message');
+  //     }
+  //   }
+  // };
+  const sendMessage = async () => {
+    if (message.trim()) {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        if (!token) {
+          Alert.alert('Error', 'No token found');
+          return;
+        }
+  
+        const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/api/user/send-message-customer/`, {
+          chat_id: conversation.id,
+          message: message,
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Attach the token here
+          }
+        });
+  
+        if (response.status === 200) {
+          setMessage('');
+        } else {
+          Alert.alert('Error', 'Failed to send message');
+        }
+      } catch (error) {
+        console.error('Send message error:', error);
+        Alert.alert('Error', 'Failed to send message');
+      }
+    }
+  };
+  
+
+
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const layoutHeight = event.nativeEvent.layoutMeasurement.height;
+
+    if (offsetY < contentHeight - layoutHeight - 50) { // adjust threshold as needed
+      setUserScrolledUp(true);
+    } else {
+      setUserScrolledUp(false);
+    }
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.driverName}>{driverName}</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('TripInfo', { conversation })}
+          style={styles.infoButton}
+        >
+          <Ionicons name="information-circle-outline" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
       <FlatList
+        ref={flatListRef}
         data={messages}
-        renderItem={({ item }) => <Text style={styles.message}>{item.text}</Text>}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.messageItem,
+              item.isUserMessage ? styles.userMessage : styles.driverMessage,
+            ]}
+          >
+            <Text style={styles.messageText}>{item.message}</Text>
+            <Text style={styles.messageTime}>{new Date(item.time).toLocaleString()}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.messagesList}
+        onScroll={handleScroll}
+        onContentSizeChange={() => {
+          if (!userScrolledUp) {
+            flatListRef.current.scrollToEnd({ animated: true });
+          }
+        }}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Type a message..."
-      />
-    </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={message}
+          onChangeText={setMessage}
+          placeholder="Type your message"
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 10,
-  },
-  messageList: {
-    paddingVertical: 10,
-  },
-  message: {
-    fontSize: 16,
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    marginVertical: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 25,
-    padding: 10,
-    marginVertical: 10,
-  },
-  errorText: {
-    fontSize: 18,
-    color: 'red',
-    textAlign: 'center',
-  },
+        flex: 1,
+      },
+      header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        backgroundColor: '#f1f1f1',
+      },
+      backButton: {
+        padding: 10,
+      },
+      driverName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        flex: 1,
+        textAlign: 'center',
+      },
+      infoButton: {
+        padding: 10,
+      },
+      messagesList: {
+        flexGrow: 1,
+        padding: 10,
+      },
+      messageItem: {
+        padding: 15,
+        marginBottom: 10,
+        borderRadius: 5,
+        maxWidth: '70%',
+      },
+      driverMessage: {
+        backgroundColor: '#e1ffc7',
+        alignSelf: 'flex-start',
+      },
+      userMessage: {
+        backgroundColor: '#cce5ff',
+        alignSelf: 'flex-end',
+      },
+      messageText: {
+        fontSize: 16,
+      },
+      messageTime: {
+        fontSize: 12,
+        color: '#888',
+        marginTop: 5,
+      },
+      inputContainer: {
+        flexDirection: 'row',
+        padding: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+        backgroundColor: '#f1f1f1',
+      },
+      input: {
+        flex: 1,
+        backgroundColor: '#fff',
+        padding: 10,
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#ddd',
+      },
+      sendButton: {
+        marginLeft: 10,
+        backgroundColor: '#007BFF',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      sendButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+      },
 });
 
 export default ChatScreen;
+
+
+
+

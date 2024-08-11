@@ -1,18 +1,17 @@
-
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+// firstreactapp/app/(tabs)/_layout.tsx
 import React from 'react';
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from './HomeScreen';
 import Messages from './Messages';
-import Confirmation from './confirmation';
+import Confirmation from './Confirmation';
 import Requests from './Requests';
-
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 const Tab = createBottomTabNavigator();
 
-export default function TabLayout() {
+export default function TabsLayout() {
   const colorScheme = useColorScheme();
 
   return (
@@ -26,7 +25,7 @@ export default function TabLayout() {
         name="Home"
         component={HomeScreen}
         options={{
-          title: 'Search',
+          title: 'Home',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
           ),

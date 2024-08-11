@@ -1,73 +1,28 @@
-// import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-// import { useFonts } from 'expo-font';
-// import { Stack } from 'expo-router';
-// import * as SplashScreen from 'expo-splash-screen';
-// import { useEffect } from 'react';
-// import 'react-native-reanimated';
-// import { useColorScheme } from '@/hooks/useColorScheme';
-
-// SplashScreen.preventAutoHideAsync();
-
-// export default function RootLayout() {
-//   const colorScheme = useColorScheme();
-//   const [loaded] = useFonts({
-//     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-//   });
-
-//   useEffect(() => {
-//     if (loaded) {
-//       SplashScreen.hideAsync();
-//     }
-//   }, [loaded]);
-
-//   if (!loaded) {
-//     return null;
-//   }
-
-//   return (
-//     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-//       <Stack>
-//         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-//         <Stack.Screen name="not-found" />
-//       </Stack>
-//     </ThemeProvider>
-//   );
-// }
-
-
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+// RootLayout.js
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="not-found" />
-      </Stack>
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#f4511e',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        headerShown: false, // Hide header by default for all screens
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="signup" options={{ headerShown: false }} />
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)/HomeScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="JobPostings" options={{ title: 'Job Postings' }} />
+      <Stack.Screen name="JobDetail" options={{ title: 'Job Detail' }} />
+      <Stack.Screen name="(tabs)/Requests" options={{ title: 'Requests' }} />
+      <Stack.Screen name="RequestDetails" options={{ title: 'Request Details' }} />
+    </Stack>
   );
 }
-

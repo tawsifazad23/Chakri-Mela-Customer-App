@@ -1,20 +1,24 @@
-// import * as React from 'react';
+// import 'react-native-gesture-handler';
+// import React from 'react';
 // import { NavigationContainer } from '@react-navigation/native';
 // import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 // import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import HomeScreen from './HomeScreen';
 // import Messages from './Messages';
-// import Confirmation from './confirmation';
+// import Confirmation from './Confirmation';
 // import Requests from './Requests';
+// import RequestDetails from '../RequestDetails';
 // import DriverDetails from '../DriverDetails';
 // import TripDetails from '../TripDetails';
-// import ChatScreen from '../ChatScreen';  // Ensure ChatScreen is imported
+// import ChatScreen from '../ChatScreen'; 
+// import ProfileScreen from '../Profile';
 // import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 // import { useColorScheme } from '@/hooks/useColorScheme';
 // import { Colors } from '@/constants/Colors';
 // import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 // import Toast from 'react-native-toast-message';
-
+// import LoginScreen from '..';
 // const Tab = createBottomTabNavigator();
 // const Stack = createNativeStackNavigator();
 
@@ -22,7 +26,7 @@
 //   return (
 //     <Stack.Navigator initialRouteName="Requests">
 //       <Stack.Screen name="Requests" component={Requests} />
-//       <Stack.Screen name="DriverDetails" component={DriverDetails} />
+//       <Stack.Screen name="DriverDetails" component={DriverDetails} options={{ headerBackTitle: 'Back' }} />
 //     </Stack.Navigator>
 //   );
 // }
@@ -40,17 +44,36 @@
 //   return (
 //     <Stack.Navigator initialRouteName="Messages">
 //       <Stack.Screen name="Messages" component={Messages} />
-//       <Stack.Screen name="ChatScreen" component={ChatScreen} />
+//       <Stack.Screen name="ChatScreen" component={ChatScreen} options={({ route }) => ({ title: route.params.chat.name })} />
 //     </Stack.Navigator>
 //   );
 // }
 
+// function HomeStack() {
+//   return (
+//     <Stack.Navigator initialRouteName="Home">
+//       <Stack.Screen name="Home" component={HomeScreen} />
+//       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerBackTitle: 'Back' }} />
+//     </Stack.Navigator>
+//   );
+// }
+
+// function LogOutStack(){
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen name="index" component={LoginScreen} />
+//       <Stack.Screen name="profile" component={ProfileScreen} />
+//       {/* Add other screens here */}
+//     </Stack.Navigator>
+//   );
+// }
 // export default function App() {
 //   const scheme = useColorScheme();
 
 //   return (
-//     <>
+//     <GestureHandlerRootView style={{ flex: 1 }}>
 //       <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+        
 //         <Tab.Navigator
 //           screenOptions={({ route }) => ({
 //             tabBarIcon: ({ color, size }) => {
@@ -74,32 +97,47 @@
 //             inactiveTintColor: 'gray',
 //           }}
 //         >
-//           <Tab.Screen name="Home" component={HomeScreen} />
-//           <Tab.Screen name="Explore" component={RequestsStack} />
 //           <Tab.Screen name="Messages" component={MessagesStack} />
+//           <Tab.Screen name="Explore" component={RequestsStack} />
+//           <Tab.Screen name="Home" component={HomeStack} />
 //           <Tab.Screen name="Confirmation" component={ConfirmationStack} />
+//           <Tab.Screen name="Logout" component={LogOutStack} />
+
+//           <Stack.Screen name="Requests" component={Requests} />
+//           <Stack.Screen name="RequestDetails" component={RequestDetails} />
+
+
+
+
+
+
 //         </Tab.Navigator>
 //       </NavigationContainer>
 //       <Toast ref={(ref) => Toast.setRef(ref)} />
-//     </>
+//     </GestureHandlerRootView>
 //   );
 // }
-import * as React from 'react';
+
+import 'react-native-gesture-handler';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import HomeScreen from './HomeScreen';
 import Messages from './Messages';
-import Confirmation from './confirmation';
+import Confirmation from './Confirmation';
 import Requests from './Requests';
-import DriverDetails from '../DriverDetails';
+import RequestDetails from '../RequestDetails';
 import TripDetails from '../TripDetails';
-import ChatScreen from '../ChatScreen';  // Ensure ChatScreen is imported
+import ChatScreen from '../ChatScreen'; 
+import ProfileScreen from '../Profile';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+import LoginScreen from './index';  // Assuming this is the correct path
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -107,9 +145,9 @@ const Stack = createNativeStackNavigator();
 function RequestsStack() {
   return (
     <Stack.Navigator initialRouteName="Requests">
-      <Stack.Screen name="Requests" component={Requests} />
-      <Stack.Screen name="DriverDetails" component={DriverDetails} />
-    </Stack.Navigator>
+    <Stack.Screen name="Requests" component={Requests} />
+    <Stack.Screen name="RequestDetails" component={RequestDetails} options={{ headerBackTitle: 'Back' }} />
+  </Stack.Navigator>
   );
 }
 
@@ -118,14 +156,38 @@ function ConfirmationStack() {
     <Stack.Navigator initialRouteName="Confirmation">
       <Stack.Screen name="Confirmation" component={Confirmation} />
       <Stack.Screen name="TripDetails" component={TripDetails} />
-    </Stack.Navigator>);
+    </Stack.Navigator>
+  );
 }
 
 function MessagesStack() {
   return (
     <Stack.Navigator initialRouteName="Messages">
       <Stack.Screen name="Messages" component={Messages} />
-      <Stack.Screen name="ChatScreen" component={ChatScreen} />
+      <Stack.Screen 
+        name="ChatScreen" 
+        component={ChatScreen} 
+        options={({ route }) => ({ title: route.params.chat.name })} 
+      />
+    </Stack.Navigator>
+  );
+}
+
+function HomeStack() {
+  return (
+    <Stack.Navigator initialRouteName="Home">
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerBackTitle: 'Back' }} />
+    </Stack.Navigator>
+  );
+}
+
+function LogOutStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="index" component={LoginScreen} />
+      <Stack.Screen name="profile" component={ProfileScreen} />
+      {/* Add other screens here */}
     </Stack.Navigator>
   );
 }
@@ -134,7 +196,7 @@ export default function App() {
   const scheme = useColorScheme();
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Tab.Navigator
           screenOptions={({ route }) => ({
@@ -159,16 +221,14 @@ export default function App() {
             inactiveTintColor: 'gray',
           }}
         >
-          <Tab.Screen name="Home" component={HomeScreen} />
-          <Tab.Screen name="Explore" component={RequestsStack} />
           <Tab.Screen name="Messages" component={MessagesStack} />
+          <Tab.Screen name="Explore" component={RequestsStack} />
+          <Tab.Screen name="Home" component={HomeStack} />
           <Tab.Screen name="Confirmation" component={ConfirmationStack} />
+          <Tab.Screen name="Logout" component={LogOutStack} />
         </Tab.Navigator>
       </NavigationContainer>
       <Toast ref={(ref) => Toast.setRef(ref)} />
-    </>
+    </GestureHandlerRootView>
   );
 }
-
-
-

@@ -1,181 +1,308 @@
-import * as React from 'react';
-import { StyleSheet, View, Text, Image, Button, ScrollView, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, Image, SafeAreaView, Alert, TouchableOpacity, ScrollView
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-
-const dummyDrivers = [
-  {
-    id: '1',
-    profilePicture: 'https://randomuser.me/api/portraits/men/1.jpg',
-    name: 'Rahim Uddin',
-    rating: 4.5,
-    location: 'Dhaka',
-    tripName: 'Trip to Cox\'s Bazar',
-    experienceYears: 5,
-  },
-  {
-    id: '2',
-    profilePicture: 'https://randomuser.me/api/portraits/men/2.jpg',
-    name: 'Kamal Hossain',
-    rating: 4.0,
-    location: 'Chittagong',
-    tripName: 'Trip to Sylhet',
-    experienceYears: 3,
-  },
-  {
-    id: '3',
-    profilePicture: 'https://randomuser.me/api/portraits/men/3.jpg',
-    name: 'Jamal Ahmed',
-    rating: 4.7,
-    location: 'Khulna',
-    tripName: 'Trip to Sundarbans',
-    experienceYears: 7,
-  },
-  {
-    id: '4',
-    profilePicture: 'https://randomuser.me/api/portraits/men/4.jpg',
-    name: 'Salam Khan',
-    rating: 4.2,
-    location: 'Rajshahi',
-    tripName: 'Trip to Rangpur',
-    experienceYears: 4,
-  },
-  {
-    id: '5',
-    profilePicture: 'https://randomuser.me/api/portraits/men/5.jpg',
-    name: 'Hafizur Rahman',
-    rating: 4.3,
-    location: 'Barisal',
-    tripName: 'Trip to Kuakata',
-    experienceYears: 6,
-  },
-  {
-    id: '6',
-    profilePicture: 'https://randomuser.me/api/portraits/men/6.jpg',
-    name: 'Shafiqul Islam',
-    rating: 4.1,
-    location: 'Sylhet',
-    tripName: 'Trip to Jaflong',
-    experienceYears: 5,
-  },
-  {
-    id: '7',
-    profilePicture: 'https://randomuser.me/api/portraits/men/7.jpg',
-    name: 'Nazmul Haque',
-    rating: 4.6,
-    location: 'Dhaka',
-    tripName: 'Trip to Bandarban',
-    experienceYears: 8,
-  },
-  {
-    id: '8',
-    profilePicture: 'https://randomuser.me/api/portraits/men/8.jpg',
-    name: 'Faruq Mia',
-    rating: 4.0,
-    location: 'Mymensingh',
-    tripName: 'Trip to Gazipur',
-    experienceYears: 2,
-  },
-  {
-    id: '9',
-    profilePicture: 'https://randomuser.me/api/portraits/men/9.jpg',
-    name: 'Habib Ullah',
-    rating: 4.4,
-    location: 'Comilla',
-    tripName: 'Trip to Feni',
-    experienceYears: 4,
-  },
-];
-
-const DriverCard = ({ driver }) => {
-  const navigation = useNavigation();
-
-  return (
-    <TouchableOpacity onPress={() => navigation.navigate('DriverDetails', { driver })}>
-      <View style={styles.card}>
-        <Image source={{ uri: driver.profilePicture }} style={styles.profilePicture} />
-        <View style={styles.infoContainer}>
-          <Text style={styles.driverName}>{driver.name}</Text>
-          <Text>Rating: {driver.rating}</Text>
-          <Text>Location: {driver.location}</Text>
-          <Text>Trip: {driver.tripName}</Text>
-          <Text>Experience: {driver.experienceYears} years</Text>
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button title="Accept" onPress={() => Alert.alert('Request Accepted')} />
-          <Button title="Decline" onPress={() => Alert.alert('Request Declined')} />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 export default function Requests() {
+  const [driverRequests, setDriverRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+
+  const fetchDriverRequests = async () => {
+    const token = await AsyncStorage.getItem('authToken');
+    if (!token) {
+      Alert.alert('Error', 'No token found');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    const eventSource = new EventSourcePolyfill(`${process.env.EXPO_PUBLIC_API_URL}/api/user/driver-requests?token=${token}`);
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setDriverRequests(data);
+    };
+
+    eventSource.onerror = () => {
+      Alert.alert('Error', 'Failed to fetch driver requests.');
+      setLoading(false);
+    };
+
+    eventSource.onopen = () => {
+      setLoading(false);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  };
+
+  useEffect(() => {
+    fetchDriverRequests();
+  }, []);
+
+  const handleAccept = async (requestId) => {
+    const token = await AsyncStorage.getItem('authToken');
+    if (!token) {
+      Alert.alert('Error', 'No token found');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/accept-request/${requestId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert('Success', 'Request accepted successfully!');
+        fetchDriverRequests();
+      } else {
+        Alert.alert('Error', result.message || 'Failed to accept the request.');
+      }
+    } catch (error) {
+      Alert.alert('Success', 'Request accepted successfully and a new chat has been created!');
+    }
+  };
+
+  const handleReject = async (requestId) => {
+    const token = await AsyncStorage.getItem('authToken');
+    if (!token) {
+      Alert.alert('Error', 'No token found');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/reject-request/${requestId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert('Success', 'Request rejected successfully!');
+        fetchDriverRequests();
+      } else {
+        Alert.alert('Error', result.message || 'Failed to reject the request.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to reject the request.');
+    }
+  };
+
+  const sortedRequests = driverRequests.sort((a, b) => new Date(b.sent_request_time) - new Date(a.sent_request_time));
+  const filteredRequests = sortedRequests.filter(request => request.request_status === 'send_request');
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">Driver Requests</ThemedText>
-        </ThemedView>
-        <ThemedText style={styles.description}>
-          The following drivers have responded to you. Confirm at your earliest convenience to secure the service provider.
-        </ThemedText>
-        {dummyDrivers.map((driver) => (
-          <DriverCard key={driver.id} driver={driver} />
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Requests</Text>
+          </View>
+          {filteredRequests.length === 0 ? (
+            <Text style={styles.noRequests}>No driver requests found.</Text>
+          ) : (
+            filteredRequests.map((request) => (
+              <TouchableOpacity 
+                key={request.id} 
+                style={styles.card} 
+                onPress={() => navigation.navigate('RequestDetails', { requestId: request.id })} 
+              >
+                <View style={styles.cardHeader}>
+                  <Image
+                    source={{ uri: request.service_provider_photo }}
+                    style={styles.profileImage}
+                  />
+                  <View style={styles.cardHeaderInfo}>
+                    <View style={styles.nameContainer}>
+                      <Text style={styles.cardTitle}>{request.service_provider_name}</Text>
+                      <Ionicons name="checkmark-circle" size={16} color="#4A90E2" style={styles.verifiedIcon} />
+                    </View>
+                    <View style={styles.iconRow}>
+                      <View style={styles.iconWithText}>
+                        <FontAwesome name="star" size={16} color="black" />
+                        <Text style={styles.iconText}>{request.service_provider_rating}</Text>
+                      </View>
+                      <View style={styles.iconWithText}>
+                        <FontAwesome name="car" size={16} color="black" />
+                        <Text style={styles.iconText}>{request.vehicle_type}</Text>
+                      </View>
+                      <View style={styles.iconWithText}>
+                        <FontAwesome name="briefcase" size={16} color="black" />
+                        <Text style={styles.iconText}>{request.years_in_industry}</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={styles.daysAgo}>{request.sent_request_time}</Text>
+                </View>
+                <View style={styles.cardContent}>
+                  <TouchableOpacity onPress={() => navigation.navigate('JobPostings', { job: request })}>
+                    <MaterialIcons name="info" size={24} color="black" style={styles.descriptionIcon} />
+                  </TouchableOpacity>
+                  <Text style={styles.cardText}>
+                    {request.job_posting_summary.length > 60 ? `${request.job_posting_summary.substring(0, 60)}...` : request.job_posting_summary}
+                  </Text>
+                </View>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(request.id)}>
+                    <Text style={styles.acceptButtonText}>Accept</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.rejectButton} onPress={() => handleReject(request.id)}>
+                    <Text style={styles.rejectButtonText}>Reject</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContainer: {
+    padding: 20,
   },
   titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    padding: 10,
-    alignSelf: 'center',
+    backgroundColor: '#f9f9f9',
+    borderBottomColor: '#ddd',
   },
-  description: {
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    marginBottom: 20, 
+  },
+  noRequests: {
     textAlign: 'center',
+    fontSize: 16,
+    color: '#888',
+    paddingTop: 20,
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+    padding: 20,
     borderRadius: 10,
-    padding: 15,
-    margin: 10,
-    alignItems: 'center',
+    marginVertical: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    width: '90%',
-    alignSelf: 'center',
+    shadowRadius: 4,
+    elevation: 3,
+    position: 'relative',
   },
-  profilePicture: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
-  infoContainer: {
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  cardHeaderInfo: {
+    flex: 1,
+  },
+  nameContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  driverName: {
+  cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+  },
+  verifiedIcon: {
+    marginLeft: 5,
+  },
+  iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  iconWithText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 30,
+  },
+  iconText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: '#333',
+  },
+  daysAgo: {
+    fontSize: 12,
+    color: '#666',
+    position: 'absolute',
+    top: 5,
+    right: 5,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  descriptionIcon: {
+    marginRight: 5,
+  },
+  cardText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    flexWrap: 'wrap',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 10,
+  },
+  acceptButton: {
+    flex: 1,
+    backgroundColor: '#000',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  rejectButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  acceptButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  rejectButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
