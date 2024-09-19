@@ -2,6 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 export default function JobPostings() {
   const [jobPostings, setJobPostings] = useState([]);
@@ -52,10 +56,10 @@ export default function JobPostings() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.header}>Your Job Postings</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+  <Ionicons name="arrow-back-outline" size={24} color="black" />
+</TouchableOpacity>
+        <Text style={styles.header}>Job Postings</Text>
       </View>
 
       {loading ? (
@@ -100,19 +104,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   backButton: {
-    marginRight: 16,
-    marginTop: 8,
-    marginLeft: 8,
-    marginBottom: 3,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: '#000',
-    borderRadius: 4,
+    marginLeft: 16,
+    marginTop: 5,
   },
   backButtonText: {
     color: '#fff',
   },
   header: {
+    marginTop: 5,
+    left:10,
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -168,5 +168,8 @@ const styles = StyleSheet.create({
   summary: {
     fontSize: 14,
     color: '#777',
+  },
+  iconButton: {
+    padding: 8,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback } from "react";
 import { Text, TextInput, TouchableOpacity, View, Image, StyleSheet, Modal, SafeAreaView, Button, Alert } from 'react-native';
 import CalendarPicker from "react-native-calendar-picker";
 import { HelloWave } from '@/components/HelloWave';
@@ -11,7 +11,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Make sure to install and link the vector icons library
-
+import { useFocusEffect } from '@react-navigation/native';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 const thanas = [
   { label: 'Adabar Thana', value: 'Adabar Thana' },
@@ -53,10 +56,10 @@ export default function HomeScreen({ navigation }) {
   const [profilePhoto, setProfilePhoto] = useState('');
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
-  const driverImage = require('/Users/tawsifibneazad/firstapp/firstreactapp/assets/images/IMG_7509.jpg');
-  const maidImage = require('/Users/tawsifibneazad/firstapp/firstreactapp/assets/images/IMG_7508.jpg');
+  const driverImage = require('/Users/tawsifibneazad/Documents/Kormo Mela/firstapp/firstreactapp/assets/images/IMG_7509.jpg');
+  const maidImage = require('/Users/tawsifibneazad/Documents/Kormo Mela/firstapp/firstreactapp/assets/images/IMG_7508.jpg');
 
-  useEffect(() => {
+
     const fetchProfileData = async () => {
       const token = await AsyncStorage.getItem('authToken');
       if (!token) {
@@ -82,8 +85,11 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
-    fetchProfileData();
-  }, []);
+    useFocusEffect(
+      useCallback(() => {
+        fetchProfileData();
+      }, [])
+    );
 
   const handleRateChange = (input) => {
     const rateValue = parseInt(input, 10);
@@ -123,7 +129,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const toggleServiceType = () => {
-    setServiceType((prevType) => (prevType === 'Driver' ? 'Maid' : 'Driver'));
+    setServiceType((prevType) => (prevType === 'Driver' ? 'Housekeeper' : 'Driver'));
   };
 
     // Function to determine the greeting based on the current hour
@@ -267,10 +273,10 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
       <View style={styles.topBar}>
         <Image
-          source={require('/Users/tawsifibneazad/firstapp/firstreactapp/assets/images/IMG_6986.jpg')}
+          source={require('/Users/tawsifibneazad/Documents/Kormo Mela/firstapp/firstreactapp/assets/images/IMG_6986.jpg')}
           style={styles.logo}
         />
-        <Text style={{ color: theme.textColor, flex: 2, textAlign: 'center', fontSize: 17, top: 8, fontFamily: 'Merriweather-BlackItalic' }}>{getGreeting()} !</Text>
+        <Text style={{ color: theme.textColor, flex: 2, textAlign: 'center', fontSize: 18, top: 5, right:70, fontFamily: 'Merriweather-BlackItalic' }}>{getGreeting()} </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Profile', { profile: 'dummy data' })}>
           <Image
             source={{ uri: profilePhoto || 'https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg' }}
@@ -295,7 +301,7 @@ export default function HomeScreen({ navigation }) {
               />
               <View style={styles.serviceToggleContainer}>
                 <Text style={styles.toggleText}>
-                  <Text style={{ fontWeight: "bold" }}> Current search: {serviceType}</Text>{"\n"} Switch to {serviceType === 'Driver' ? 'maid' : 'driver'}?
+                  <Text style={{ fontWeight: "bold" }}> Current search: {serviceType}</Text>{"\n"} Switch to {serviceType === 'Driver' ? 'House Keepter' : 'Driver'}?
                 </Text>
                 <TouchableOpacity onPress={toggleServiceType}>
                   <Image
@@ -315,33 +321,44 @@ export default function HomeScreen({ navigation }) {
 
           <View style={[styles.stepContainer, { backgroundColor: theme.backgroundColor }]}>
             <View style={styles.stepHeader}>
-              <Text style={{ color: theme.textColor }}>1. Select Service Period</Text>
+              <Text style={{ color: theme.textColor, fontSize: 18, fontWeight:'bold'  }}>1. Select Service Period</Text>
               <TouchableOpacity
                 style={styles.jobPostingsButton}
                 onPress={() => navigation.navigate('JobPostings')}
               >
-                <Text style={{ color: theme.textColor }}>Your Job Postings</Text>
+                <Text style={{ color: theme.textColor }}> Job Postings</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.calendarContainer}>
-              <CalendarPicker
-                startFromMonday={true}
-                allowRangeSelection={true}
-                minDate={new Date()}
-                onDateChange={handleDateChange}
-                selectedStartDate={selectedStartDate}
-                selectedEndDate={selectedEndDate}
-                textStyle={{ color: theme.textColor }}
-                todayBackgroundColor={theme.backgroundColor}
-                selectedDayColor="black"
-                selectedDayTextColor="white"
-                previousTitle="<"
-                nextTitle=">"
-                previousTitleStyle={{ color: theme.textColor }}
-                nextTitleStyle={{ color: theme.textColor }}
-                width={340}
-              />
-            </View>
+  <CalendarPicker
+    startFromMonday={true}
+    allowRangeSelection={true}
+    minDate={new Date()}
+    onDateChange={handleDateChange}
+    selectedStartDate={selectedStartDate}
+    selectedEndDate={selectedEndDate}
+    textStyle={{ color: theme.textColor, fontSize: 16 }} // Increase text size
+    todayBackgroundColor="#f39c12" // Highlight today's date with a vibrant color
+    selectedDayColor="black" // Use a contrasting color for selected days
+    selectedDayTextColor="white" // Ensure selected day text is readable
+    previousTitle="<"
+    nextTitle=">"
+    previousTitleStyle={{ color: theme.textColor, fontSize: 20 }} // Larger previous arrow
+    nextTitleStyle={{ color: theme.textColor, fontSize: 20 }} // Larger next arrow
+    width={350}
+    height={350} // Increase the height slightly for better readability
+    selectedStartDateContainerStyle={{ borderRadius: 20 }} // Rounded corners for selected date
+    selectedEndDateContainerStyle={{ borderRadius: 20 }} // Rounded corners for end date
+    customDayHeaderStyles={(date) => ({
+      textStyle: {
+        color: theme.textColor,
+        fontWeight: 'bold',
+      },
+    })}
+    enableDateChange={true}
+  />
+</View>
+
             {selectedStartDate && selectedEndDate && (
               <Text style={{ color: theme.textColor }}>
                 Selected Dates: {selectedStartDate.toDateString()} - {selectedEndDate.toDateString()}
@@ -350,7 +367,7 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <View style={[styles.stepContainer, { backgroundColor: theme.backgroundColor }]}>
-            <Text style={{ color: theme.textColor }}>2. Specify Service Rate <Text style={[styles.min, { color: theme.textColor }]}> (Min 800 Taka)</Text></Text>
+            <Text style={{ color: theme.textColor, fontSize: 18, fontWeight:'bold'  }}>2. Specify Service Rate <Text style={[styles.min, { color: theme.textColor }]}> (Min 800 Taka)</Text></Text>
             <TextInput
               style={[
                 styles.rateInput,
@@ -364,7 +381,7 @@ export default function HomeScreen({ navigation }) {
             />
           </View>
           <View style={[styles.stepContainer, { backgroundColor: theme.backgroundColor }]}>
-            <Text style={{ color: theme.textColor }}>3. Choose Starting Location</Text>
+            <Text style={{ color: theme.textColor, fontSize: 18, fontWeight:'bold'  }}>3. Choose Starting Location</Text>
             <Picker
               onValueChange={(value) => setSelectedThana(value)}
               items={thanas}
@@ -392,7 +409,7 @@ export default function HomeScreen({ navigation }) {
 
           <View style={[styles.stepContainer, { backgroundColor: theme.backgroundColor }]}>
             <View style={styles.titleWithCounter}>
-              <Text style={{ color: theme.textColor }}>Provide Task Summary</Text>
+              <Text style={{ color: theme.textColor, fontSize: 18, fontWeight:'bold'  }}>4. Provide Task Summary</Text>
               <Text style={[styles.counter, { color: description.length < 100 ? 'red' : 'green' }]}>
                 {description.length}
               </Text>
@@ -475,13 +492,19 @@ const styles = StyleSheet.create({
   },
   jobPostingsButton: {
     padding: 10,
-    marginLeft: 20,
-    marginBottom: 20,
-    borderRadius: 4,
-    backgroundColor: 'white',
-    borderColor: 'black',
-    borderWidth: 1,
+    left: 20,
+    bottom: 5,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',  // Slightly off-white for a softer look
+    borderColor: '#333',          // Darker border color for contrast
+    borderWidth: 2,               // Thicker border
+    shadowColor: '#000',          // Shadow color
+    shadowOffset: { width: 0, height: 1 }, // Shadow offset for elevation
+    shadowOpacity: 0.8,           // Shadow opacity
+    shadowRadius: 4,              // Shadow blur radius
+    elevation: 5,                 // Elevation for Android devices
   },
+  
   jobPostingsButtonText: {
     color: 'black',
     fontWeight: 'bolder',
@@ -512,9 +535,9 @@ const styles = StyleSheet.create({
     justifyContent: 'left',
   },
   counter: {
-    marginTop: 10,
+    marginTop: 5,
     marginLeft: 3,
-    fontSize: 12,
+    fontSize: 10,
   },
   submitButtonContainer: {
     width: 170,
@@ -527,10 +550,10 @@ const styles = StyleSheet.create({
     height: 60,
   },
   submitButton: {
-    height: 60,
-    paddingVertical: 10,
-    paddingHorizontal: 25,
-    width: 170,
+    height: 50,
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    width: 150,
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
@@ -594,17 +617,34 @@ const styles = StyleSheet.create({
     height: 60,
   },
   logo: {
-    width: 40,
-    height: 40,
-    marginRight: 8,
-    borderRadius: 30,
+    width: 50, // Increase size slightly for better visibility
+    height: 50, // Keep the height consistent with the width
+    marginRight: 150,
+    borderRadius: 25, // Half of width/height for a perfect circle
+    backgroundColor: '#fff', // Optional: Add a background color for contrast
+    borderWidth: 2, // Add a border to define the logo
+    borderColor: '#ddd', // Light grey border for a subtle effect
+    shadowColor: '#000', // Add shadow for depth
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset for elevation effect
+    shadowOpacity: 0.8, // Shadow opacity
+    shadowRadius: 4, // Shadow blur radius
+    elevation: 5, // Elevation for Android shadow
   },
+  
   profileLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50, // Slightly larger for better visibility
+    height: 50, // Matching width for a perfect circle
+    borderRadius: 25, // Half of width/height for a perfect circle
     marginLeft: 1,
+    borderWidth: 2, // Add a border to make it stand out
+    borderColor: '#fff', // White border for a clean look
+    shadowColor: '#000', // Shadow for depth
+    shadowOffset: { width: 0, height: 2 }, // Subtle shadow offset
+    shadowOpacity: 0.8, // Stronger shadow opacity
+    shadowRadius: 4, // Blur radius for the shadow
+    elevation: 5, // Elevation for Android shadow
   },
+  
   boldText: {
     fontWeight: 'bold',
     color: 'inherit',

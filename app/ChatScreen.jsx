@@ -5,6 +5,9 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EventSource from 'react-native-event-source';
 import { Ionicons } from '@expo/vector-icons';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 const ChatScreen = () => {
   const route = useRoute();

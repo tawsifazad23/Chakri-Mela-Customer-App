@@ -7,6 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 export default function Requests() {
   const [driverRequests, setDriverRequests] = useState([]);
@@ -64,7 +67,7 @@ export default function Requests() {
       });
       const result = await response.json();
       if (response.ok) {
-        Alert.alert('Success', 'Request accepted successfully!');
+        // Alert.alert('Success', 'Request accepted successfully!');
         fetchDriverRequests();
       } else {
         Alert.alert('Error', result.message || 'Failed to accept the request.');
@@ -91,7 +94,7 @@ export default function Requests() {
       });
       const result = await response.json();
       if (response.ok) {
-        Alert.alert('Success', 'Request rejected successfully!');
+        // Alert.alert('Success', 'Request rejected successfully!');
         fetchDriverRequests();
       } else {
         Alert.alert('Error', result.message || 'Failed to reject the request.');
@@ -237,6 +240,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   iconRow: {
+    marginTop:20,
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
@@ -247,6 +251,7 @@ const styles = StyleSheet.create({
     marginRight: 30,
   },
   iconText: {
+    
     marginLeft: 5,
     fontSize: 14,
     color: '#333',
@@ -255,8 +260,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     position: 'absolute',
-    top: 5,
-    right: 5,
+    top: 1,
+    right: 1,
   },
   cardContent: {
     flexDirection: 'row',
@@ -264,9 +269,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   descriptionIcon: {
+    marginTop:15,
+    marginLeft: 5,
     marginRight: 5,
   },
   cardText: {
+    marginTop:15,
+
+    marginRight:8,
     fontSize: 16,
     color: '#333',
     flex: 1,

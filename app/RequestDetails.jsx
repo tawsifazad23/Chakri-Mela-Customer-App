@@ -1,5 +1,3 @@
-
-// export default RequestDetails;
 import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, ActivityIndicator, Image, ScrollView, Alert, Button, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +5,9 @@ import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Video } from 'expo-av';
 import moment from 'moment';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 const RequestDetails = () => {
   const navigation = useNavigation();
@@ -109,26 +110,27 @@ const RequestDetails = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Request Details</Text>
         </View>
-        <Text style={styles.driverName}>
-          {requestDetails.service_provider.first_name} {requestDetails.service_provider.last_name}
-        </Text>
+
         <View style={styles.profileContainer}>
           <View style={styles.profileDetails}>
+            <Text style={styles.driverName}>
+              {requestDetails.service_provider.first_name} {requestDetails.service_provider.last_name}
+            </Text>
             <View style={styles.iconWithText}>
-              <Ionicons name="star" size={16} color="black" />
+              <Ionicons name="star" size={20} color="#FFD700" />
               <Text style={styles.iconText}>Rating: {requestDetails.service_provider.rating || 'N/A'}</Text>
             </View>
             <View style={styles.iconWithText}>
-              <Ionicons name="briefcase" size={16} color="black" />
+              <Ionicons name="briefcase" size={20} color="#000" />
               <Text style={styles.iconText}>Years in Industry: {requestDetails.service_provider.years_in_industry}</Text>
             </View>
             <View style={styles.iconWithText}>
-              <Ionicons name="car" size={16} color="black" />
+              <Ionicons name="car" size={20} color="#000" />
               <Text style={styles.iconText}>Vehicle Type: {requestDetails.service_provider.vehicle_type}</Text>
             </View>
             <View style={styles.iconWithText}>
-              <Ionicons name="checkmark-circle" size={16} color="black" />
-              <Text style={styles.iconText}>App Verified Date: {formatDate(requestDetails.service_provider.app_verified_date)}</Text>
+              <Ionicons name="checkmark-circle" size={20} color="#000" />
+              <Text style={styles.iconText}>App Verified: {formatDate(requestDetails.service_provider.app_verified_date)}</Text>
             </View>
           </View>
           <Image
@@ -136,7 +138,8 @@ const RequestDetails = () => {
             style={styles.profileImage}
           />
         </View>
-        <Text style={styles.sectionTitle}>Interview Video</Text>
+
+        <Text style={styles.sectionTitle}>Introductory Video</Text>
         <View style={styles.videoContainer}>
           <Video
             source={{ uri: 'https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/rCR4u8bygiud1h6sl/business-man-sits-and-talks-to-camera-interview-green-screen-studio_h73bpcn1e__e6185f30f5d958c25ded442ecf294055__P360.mp4' }}
@@ -149,46 +152,46 @@ const RequestDetails = () => {
             style={styles.video}
           />
         </View>
+
         <TouchableOpacity style={styles.toggleButton} onPress={toggleJobDetails}>
           <Text style={styles.toggleButtonText}>{showJobDetails ? 'Hide' : 'Show'} Job Details</Text>
         </TouchableOpacity>
+
         {showJobDetails && (
           <View style={styles.jobDetailsContainer}>
             <View style={styles.detailItem}>
-              <FontAwesome5 name="id-badge" size={16} color="black" />
+              <FontAwesome5 name="id-badge" size={20} color="#000" />
               <Text style={styles.jobDetail}>Job ID: {requestDetails.job_posting.id}</Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailItem}>
-              <FontAwesome5 name="tools" size={16} color="black" />
+              <FontAwesome5 name="tools" size={20} color="#000" />
               <Text style={styles.jobDetail}>Service Type: {requestDetails.job_posting.service_type}</Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailItem}>
-              <FontAwesome5 name="calendar-alt" size={16} color="black" />
+              <FontAwesome5 name="calendar-alt" size={20} color="#000" />
               <Text style={styles.jobDetail}>Service Period: {formatDateRange(requestDetails.job_posting.service_period)}</Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailItem}>
-              <FontAwesome5 name="money-bill-wave" size={16} color="black" />
+              <FontAwesome5 name="money-bill-wave" size={20} color="#000" />
               <Text style={styles.jobDetail}>Service Rate: {requestDetails.job_posting.service_rate} ৳</Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailItem}>
-              <Ionicons name="location-sharp" size={16} color="black" />
+              <Ionicons name="location-sharp" size={20} color="#000" />
               <Text style={styles.jobDetail}>Location: {requestDetails.job_posting.onboarding_location}</Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailItem}>
-              <Ionicons name="document-text" size={16} color="black" />
+
               <Text style={styles.jobDetail}>Summary: {requestDetails.job_posting.job_summary}</Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailItem}>
-              <FontAwesome5 name="clock" size={16} color="black" />
-              <Text style={styles.jobDetail}>
-                Requested On: {formatDate(requestDetails.sent_request_time)}
-              </Text>
+              <FontAwesome5 name="clock" size={20} color="#000" />
+              <Text style={styles.jobDetail}>Requested On: {formatDate(requestDetails.sent_request_time)}</Text>
             </View>
           </View>
         )}
@@ -239,11 +242,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 10,
+    color: '#000',
   },
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   profileDetails: {
     flex: 1,
@@ -253,12 +265,14 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     marginLeft: 10,
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
   driverName: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'left',
     marginBottom: 10,
+    color: '#000',
   },
   iconWithText: {
     flexDirection: 'row',
@@ -275,11 +289,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 20,
     textAlign: 'center',
+    color: '#000',
   },
   videoContainer: {
     width: '100%',
     height: 200,
     marginBottom: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   video: {
     width: '100%',
@@ -298,7 +315,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   jobDetailsContainer: {
-    marginBottom: 20,
+    backgroundColor: '#fff',
+    padding: 18,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   detailItem: {
     flexDirection: 'row',
@@ -307,12 +331,13 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: '#ddd',
     marginVertical: 10,
   },
   jobDetail: {
     fontSize: 18,
     marginLeft: 10,
+    color: '#333',
   },
 });
 

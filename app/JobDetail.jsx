@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ImageBackground } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function JobDetail() {
   const route = useRoute();
@@ -26,7 +28,7 @@ export default function JobDetail() {
       });
 
       if (response.ok) {
-        Alert.alert('Success', 'Job posting deleted successfully!');
+        // Alert.alert('Success', 'Job posting deleted successfully!');
         navigation.goBack();
       } else {
         const errorData = await response.json();
@@ -40,14 +42,14 @@ export default function JobDetail() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>&lt;</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.header}>Job Detail</Text>
       </View>
       <View style={styles.card}>
         <ImageBackground 
-          source={require('/Users/tawsifibneazad/firstapp/firstreactapp/assets/images/driverq.jpg')} 
+          source={require('/Users/tawsifibneazad/Documents/Kormo Mela/firstapp/firstreactapp/assets/images/driverq.jpg')} 
           style={styles.image} 
           onError={() => Alert.alert('Error', 'Image not found')}
         >
@@ -79,89 +81,83 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: 8,
-  },
-  backButton: {
-    marginRight: 16,
-    marginTop: 8,
-    marginLeft: 8,
-    marginBottom: 3,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: '#000',
-    borderRadius: 4,
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 18,
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginLeft: 16,
+    color: '#000',
   },
   card: {
-    flex:2,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-    margin: 10,
+    flex: 2,
+    borderRadius: 15,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 1,
-
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   image: {
     width: '100%',
-    height: 500, // Adjust height to fit content naturally
+    height: 500,
     justifyContent: 'flex-end',
   },
   overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Darker overlay for better text visibility
+    padding: 25,
+    borderTopRightRadius: 15,
+    borderTopLeftRadius: 15,
   },
   textContainer: {
-    marginBottom: 10,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#fff',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.7)', // Adding text shadow for better visibility
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   period: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#ddd',
-    marginBottom: 4,
+    marginBottom: 8,
+    fontWeight: 'bold',  // Increased font weight
   },
   rate: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 8,
+    fontWeight: 'bold',  // Increased font weight
   },
   location: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#ddd',
     marginBottom: 8,
+    fontWeight: 'bold',  // Increased font weight
   },
   summary: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#ccc',
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 24,
+    fontWeight: 'bold',  // Increased font weight
   },
   button: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 5,
     backgroundColor: '#ff4d4d',
     alignItems: 'center',
+    alignSelf: 'flex-start',
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
   },
 });
-

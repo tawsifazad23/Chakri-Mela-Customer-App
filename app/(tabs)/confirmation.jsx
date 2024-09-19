@@ -1,60 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Image, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator, Alert
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { FontAwesome5 } from '@expo/vector-icons'; // Importing FontAwesome5 for car icon
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Trips() {
   const [trips, setTrips] = useState({ upcoming: [], past: [] });
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    fetchTrips();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchTrips = async () => {
+        try {
+          const token = await AsyncStorage.getItem('authToken');
+          if (!token) {
+            throw new Error('No token found');
+          }
 
-  const fetchTrips = async () => {
-    try {
-      const token = await AsyncStorage.getItem('authToken'); // Retrieve the token from AsyncStorage
-      if (!token) {
-        throw new Error('No token found');
-      }
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/customer_trips/`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
 
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/customer_trips/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`, // Include the token in the headers
-          'Content-Type': 'application/json',
-        },
-      });
+          if (response.ok) {
+            const data = await response.json();
 
-      if (response.status === 401) {
-        // If the token is invalid or expired, handle the unauthorized access
-        Alert.alert('Session Expired', 'Please log in again.');
-        await AsyncStorage.removeItem('authToken');
-        navigation.replace('Login'); // Navigate to the login screen
-        return;
-      }
+            // Sort the upcoming trips by the number of days remaining
+            const sortedUpcoming = data.upcoming.sort((a, b) => a.daysToGo - b.daysToGo);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch trips');
-      }
+            setTrips({ upcoming: sortedUpcoming, past: data.past });
+          } else {
+            console.error('Failed to fetch trips:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error fetching trips:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-      const data = await response.json();
-      setTrips(data);
-    } catch (error) {
-      console.error('Error fetching trips:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      fetchTrips(); // Fetch trips when the screen is focused
+
+      return () => {
+        setLoading(true); // Reset loading state when leaving the screen
+      };
+    }, [])
+  );
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#1e90ff" />
+        <ActivityIndicator size="large" color="#000" />
       </SafeAreaView>
     );
   }
@@ -62,31 +63,32 @@ export default function Trips() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Text style={styles.heading}>Upcoming</Text>
+        {/* Upcoming Trips */}
+        <Text style={styles.heading}>Upcoming Trips</Text>
         {trips.upcoming.length > 0 ? (
           trips.upcoming.map((trip) => (
             <View key={trip.id} style={styles.cardVertical}>
-              <View style={styles.profileContainer}>
+              <View style={styles.tripHeader}>
                 <Image source={{ uri: trip.driverProfilePic }} style={styles.profilePicLarge} />
-                {trip.serviceProviderType === 'Driver' && (
-                  <FontAwesome5 name="car" size={24} color="#666" style={styles.carIcon} />
-                )}
+                <View style={styles.tripInfo}>
+                  <Text style={styles.daysToGo}>
+                    {trip.daysToGo} more days to go
+                  </Text>
+                  <Text style={styles.driverName}>{trip.driverName}</Text>
+                </View>
               </View>
-              <Text style={styles.driverName}>{trip.driverName}</Text>
-              <Text style={styles.daysToGo}>{trip.daysToGo} days to go</Text>
-              <Text style={styles.serviceRate}>{trip.serviceRate} BDT</Text>
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity
-                  style={styles.infoButton}
+                  style={styles.iconButton}
                   onPress={() => navigation.navigate('TripDetails', { hiringId: trip.id })}
                 >
-                  <Text style={styles.buttonText}>View Info</Text>
+                  <Ionicons name="information-circle-outline" size={24} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.chatButton}
+                  style={styles.iconButton}
                   onPress={() => navigation.navigate('Messages', { hiringId: trip.id })}
                 >
-                  <Text style={styles.buttonText}>Chat</Text>
+                  <Ionicons name="chatbubble-ellipses-outline" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -95,7 +97,8 @@ export default function Trips() {
           <Text style={styles.noTripsText}>No upcoming trips.</Text>
         )}
 
-        <Text style={styles.heading}>Completed</Text>
+        {/* Completed Trips */}
+        <Text style={styles.heading}>Completed Trips</Text>
         {trips.past.length > 0 ? (
           trips.past.map((trip) => (
             <View key={trip.id} style={styles.cardRow}>
@@ -104,12 +107,11 @@ export default function Trips() {
                 <Text style={styles.driverNameRow}>{trip.driverName}</Text>
                 <Text style={styles.servicePeriod}>{trip.servicePeriod}</Text>
               </View>
-              <Text style={styles.serviceRateRow}>{trip.serviceRate} BDT</Text>
               <TouchableOpacity
-                style={styles.infoButtonRow}
+                style={styles.iconButtonRow}
                 onPress={() => navigation.navigate('TripDetails', { hiringId: trip.id })}
               >
-                <Text style={styles.buttonTextRow}>View Info</Text>
+                <Ionicons name="information-circle-outline" size={24} color="#000" />
               </TouchableOpacity>
             </View>
           ))
@@ -125,15 +127,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
+    backgroundColor: '#fff',
   },
   contentContainer: {
-    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
   heading: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginVertical: 16,
-    color: '#333',
+    marginBottom: 16,
+    color: '#000',
+    marginLeft:12,
   },
   noTripsText: {
     fontSize: 16,
@@ -142,36 +146,27 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   cardVertical: {
-    backgroundColor: '#fff',
-    padding: 24,
-    marginBottom: 16,
+    backgroundColor: '#f9f9f9',
+    padding: 20,
+    marginBottom: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
-    flexDirection: 'column', // Vertical layout for upcoming trips
-    alignItems: 'center',
+    marginHorizontal: 24, // Increased margin on the left and right
   },
-  cardRow: {
-    backgroundColor: '#fff',
-    padding: 12,
-    marginBottom: 16,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-    flexDirection: 'row', // Row layout for past trips
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  profileContainer: {
+  tripHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16, // Added margin for spacing
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  tripInfo: {
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: 16,
   },
   profilePicLarge: {
     width: 90,
@@ -183,78 +178,40 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  carIcon: {
-    marginLeft: 8,
-  },
   driverName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  driverNameRow: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+  daysToGo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#5B99C2', // Changed to a less bright color
+    marginBottom: 5,
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  iconButton: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 8,
+    marginHorizontal: 8,
+  },
+  tripDetailsRow: {
+    flex: 1,
+    marginLeft: 16,
   },
   servicePeriod: {
     fontSize: 14,
     fontWeight: '500',
     color: '#666',
   },
-  daysToGo: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#666',
-    marginBottom: 8,
-  },
-  serviceRate: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 16,
-  },
-  serviceRateRow: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginRight: 16,
-  },
-  tripDetailsRow: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  infoButton: {
-    backgroundColor: '#1e90ff',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 5,
-  },
-  chatButton: {
-    backgroundColor: '#32cd32',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 5,
-  },
-  infoButtonRow: {
-    backgroundColor: '#1e90ff',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  buttonTextRow: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
+  iconButtonRow: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 8,
   },
 });

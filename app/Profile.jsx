@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet, Image, SafeAreaView, Alert, TouchableOpacity, ActivityIndicator, ScrollView
@@ -7,11 +6,17 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
+import * as Font from 'expo-font';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);  // State for shimmer effect during saving
   const navigation = useNavigation();
 
   const fetchProfile = async () => {
@@ -26,7 +31,8 @@ export default function ProfileScreen() {
       });
       const data = await response.json();
       if (response.ok) {
-        setUser(data.user);
+        const phoneWithoutPrefix = data.user.phone.startsWith('+880') ? data.user.phone.slice(4) : data.user.phone;
+        setUser({ ...data.user, phone: phoneWithoutPrefix });
       } else {
         Alert.alert('Error', data.message);
       }
@@ -45,12 +51,45 @@ export default function ProfileScreen() {
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    if (!/^[3-9]\d{8}$/.test(user.phone.replace('+880', ''))) {
-      Alert.alert('Invalid Phone Number', 'Please enter a valid Bangladeshi phone number.');
+  const handleSave = async () => {
+    // Ensure the phone number is 10 digits
+    if (user.phone.length !== 10 || !/^\d{10}$/.test(user.phone)) {
+      Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit Bangladeshi phone number.');
       return;
     }
-    setIsEditing(false);
+
+    // Automatically add the +880 prefix to the phone number
+    const formattedPhone = '+880' + user.phone;
+
+    setIsSaving(true);  // Show shimmer effect while saving
+
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/profile/customer`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          occupation: user.occupation,
+          phone: formattedPhone,  // Use the formatted phone number
+          address: user.address,  // Add address to the request body
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // Alert.alert('Success', 'Profile updated successfully.');
+        setIsEditing(false);
+        fetchProfile(); // Refetch profile to reflect changes
+      } else {
+        Alert.alert('Error', data.message);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred while saving the profile.');
+    } finally {
+      setIsSaving(false);  // Hide shimmer effect after saving
+    }
   };
 
   const handleCancel = () => {
@@ -60,13 +99,13 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('authToken');
-    Alert.alert('Logged Out', 'You have been logged out successfully.');
+    // Alert.alert('Logged Out', 'You have been logged out successfully.');
     navigation.replace('index'); // Navigate to the login screen
   };
 
   const handlePhoneChange = (text) => {
-    const newText = text.startsWith('880') ? text : text.replace(/^0+/, '');
-    setUser({ ...user, phone: '+880' + newText });
+    const newText = text.replace(/[^0-9]/g, '').slice(0, 10);
+    setUser({ ...user, phone: newText });
   };
 
   const handleProfilePhotoUpload = async () => {
@@ -106,7 +145,7 @@ export default function ProfileScreen() {
 
         const uploadData = await uploadResponse.json();
         if (uploadResponse.ok) {
-          Alert.alert('Success', 'Profile photo updated successfully.');
+          // Alert.alert('Success', 'Profile photo updated successfully.');
           fetchProfile();  // Refetch profile to get the updated photo
         } else {
           Alert.alert('Error', uploadData.message);
@@ -117,8 +156,12 @@ export default function ProfileScreen() {
     }
   };
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+  if (loading || isSaving) {  // Show loading shimmer while saving or loading
+    return (
+      <SafeAreaView style={styles.container}>
+        <ShimmerPlaceHolder style={styles.shimmerPlaceholder} />
+      </SafeAreaView>
+    );
   }
 
   if (!user) {
@@ -131,7 +174,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.editButton} onPress={handleEditToggle}>
@@ -143,7 +186,6 @@ export default function ProfileScreen() {
             <Image 
               source={{ uri: user.profile_photo || 'https://via.placeholder.com/120' }} 
               style={styles.profileImage} 
-
             />
             <TouchableOpacity style={styles.editPhotoButton} onPress={handleProfilePhotoUpload}>
               <Ionicons name="pencil" size={20} color="#fff" />
@@ -155,20 +197,20 @@ export default function ProfileScreen() {
           <View style={styles.infoRow}>
             <FontAwesome name="phone" size={24} color="black" style={styles.infoIcon} />
             <Text style={styles.title}>Phone:</Text>
-            {isEditing ? (
-              <View style={styles.phoneInputContainer}>
-                <Text style={styles.phonePrefix}>+880</Text>
+            <View style={styles.phoneInputContainer}>
+              <Text style={styles.phonePrefix}>+880</Text>
+              {isEditing ? (
                 <TextInput
                   style={styles.input}
-                  value={user.phone.replace('+880', '')}
+                  value={user.phone}
                   onChangeText={handlePhoneChange}
                   placeholder="Enter phone number"
                   keyboardType="phone-pad"
                 />
-              </View>
-            ) : (
-              <Text style={styles.info}>+880 {user.phone.replace('+880', '')}</Text>
-            )}
+              ) : (
+                <Text style={styles.info}>{user.phone}</Text>
+              )}
+            </View>
           </View>
           <View style={styles.divider} />
           
@@ -191,8 +233,18 @@ export default function ProfileScreen() {
           <View style={styles.infoRow}>
             <FontAwesome name="briefcase" size={24} color="black" style={styles.infoIcon} />
             <Text style={styles.title}>Occupation:</Text>
-            <Text style={styles.info}>{user.occupation}</Text>
+            {isEditing ? (
+              <TextInput
+                style={styles.input}
+                value={user.occupation}
+                onChangeText={(text) => setUser({ ...user, occupation: text })}
+                placeholder="Enter occupation"
+              />
+            ) : (
+              <Text style={styles.info}>{user.occupation}</Text>
+            )}
           </View>
+
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
@@ -375,4 +427,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  shimmerPlaceholder: {
+    width: '90%',
+    height: 100,
+    marginTop: 16,
+    borderRadius: 15,
+  },
 });
+
