@@ -5,6 +5,10 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs(); // Ignore all log notifications
 
 const TripInfo = () => {
   const route = useRoute();
@@ -65,7 +69,12 @@ const TripInfo = () => {
       });
 
       if (response.status === 200) {
-        Alert.alert('Success', 'Chat deleted successfully!');
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Chat deleted successfully!',
+          visibilityTime: 4000,
+        });
         navigation.goBack();
       } else {
         Alert.alert('Error', 'Failed to delete chat');
@@ -78,39 +87,39 @@ const TripInfo = () => {
 
   const handleBook = async () => {
     try {
-        setLoading(true);
-        const token = await AsyncStorage.getItem('authToken');
-        if (!token) {
-          Alert.alert('Error', 'No token found');
-          return;
-        }
+      setLoading(true);
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        Alert.alert('Error', 'No token found');
+        return;
+      }
 
-        const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/api/user/book-trip/${conversation.id}/`, {}, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
+      const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/api/user/book-trip/${conversation.id}/`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      if (response.status === 200) {
+        setIsBooked(true); // Set booked status to true
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Booking confirmed!',
+          visibilityTime: 4000,
         });
-
-        if (response.status === 200) {
-          setIsBooked(true); // Set booked status to true
-          Toast.show({
-            type: 'success',
-            text1: 'Success',
-            text2: 'Booking confirmed!',
-            visibilityTime: 4000,
-          });
-        } else {
-          Alert.alert('Error', 'Failed to confirm booking');
-        }
+      } else {
+        Alert.alert('Error', 'Failed to confirm booking');
+      }
     } catch (error) {
-        if (error.response && error.response.data.message) {
-          Alert.alert('Error', error.response.data.message);
-        } else {
-          console.error("Error confirming booking:", error);
-          Alert.alert('Error', 'Failed to confirm booking');
-        }
+      if (error.response && error.response.data.message) {
+        Alert.alert('Error', error.response.data.message);
+      } else {
+        console.error("Error confirming booking:", error);
+        Alert.alert('Error', 'Failed to confirm booking');
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -203,35 +212,37 @@ const TripInfo = () => {
             <Text style={styles.label}>Onboarding Location:</Text>
             <Text style={styles.value}>{tripInfo.onboarding_location}</Text>
           </View>
+          <View style={styles.infoContainer}>
+            <Ionicons name="document-text" size={20} color="black" style={styles.icon} />
+            <Text style={styles.label}>Job Summary:</Text>
+            <Text style={styles.value}>{tripInfo.job_summary}</Text>
+          </View>
         </View>
 
-        <View style={styles.buttonContainer}>
-          {isClosed ? (
-            <View style={[styles.bookButton, { backgroundColor: 'gray' }]}>
-              <Ionicons name="close-circle" size={24} color="#fff" />
-              <Text style={styles.bookButtonText}>Closed</Text>
-            </View>
-          ) : (
-            isBooked ? (
-              <View style={[styles.bookButton, { backgroundColor: 'gray' }]}>
-                <Ionicons name="checkmark-circle" size={24} color="#fff" />
-                <Text style={styles.bookButtonText}>Booked</Text>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.bookButton} onPress={handleBook}>
-                <Ionicons name="car" size={24} color="#fff" />
-                <Text style={styles.bookButtonText}>Book Now</Text>
-              </TouchableOpacity>
-            )
-          )}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.actionButton, isBooked ? styles.bookedButton : styles.bookButton]}
+            onPress={handleBook}
+            disabled={isBooked || isClosed}
+          >
+            <Ionicons name="car" size={24} color={isBooked ? '#888' : '#fff'} />
+            <Text style={[styles.actionButtonText, { color: isBooked ? '#888' : '#fff' }]}>
+              {isBooked ? 'Booked' : 'Book Now'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={handleDeleteConversation}>
+            <Ionicons name="trash" size={24} color="#000" />
+            <Text style={[styles.actionButtonText, { color: '#000' }]}>Delete Chat</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       <Toast ref={(ref) => Toast.setRef(ref)} />
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
-    container: {
+  container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
@@ -252,12 +263,14 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     color: 'black',
+    right: 60,
   },
   scrollViewContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
   driverCard: {
+    marginTop: 20,
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
@@ -341,28 +354,43 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 16,
   },
-  buttonContainer: {
+  buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
     marginTop: 20,
-    marginHorizontal: 10,
   },
-  bookButton: {
-    backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 5,
+  actionButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+  },
+  bookButton: {
+    backgroundColor: '#000',
     marginRight: 10,
   },
-  bookButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  bookedButton: {
+    backgroundColor: '#ccc', // Gray color for the booked button
+    marginRight: 10,
+  },
+  deleteButton: {
+    backgroundColor: '#fff',
+    borderColor: '#000',
+    borderWidth: 1,
+  },
+  actionButtonText: {
     marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    color: 'black',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 18,
   },
 });
 
 export default TripInfo;
-

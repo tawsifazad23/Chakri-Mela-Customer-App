@@ -2,6 +2,9 @@ import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'; // Ensure you have expo/vector-icons installed
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 const DriverCard = ({ driver }) => {
   const navigation = useNavigation();

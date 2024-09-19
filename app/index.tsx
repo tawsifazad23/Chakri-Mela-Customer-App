@@ -5,7 +5,10 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { LogBox } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 
 const FormInput = ({ label, value, onChangeText, placeholder, secureTextEntry, keyboardType, error }) => (
@@ -58,7 +61,7 @@ const LoginScreen = () => {
       setLoading(false);
 
       if (response.ok) {
-        Alert.alert('Login Successful', 'Welcome!');
+        // Alert.alert('Login Successful', 'Welcome!');
         await AsyncStorage.setItem('authToken', data.token);
         router.push('/(tabs)/HomeScreen');
       } else {
@@ -83,9 +86,10 @@ const LoginScreen = () => {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardAvoidingView}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
-            <Text style={styles.title}>CHAKRI MELA</Text>
-            <Text style={styles.title}>Customer</Text>
-            <Text style={styles.subtitle}> Welcome Back Customer! Please Login to Continue</Text>
+          <Ionicons name="briefcase-outline" size={80} color="black" style={styles.icon} />
+            <Text style={styles.title}>Kormo Mela</Text>
+            <Text style={styles.subtitle1}>Customer</Text>
+            <Text style={styles.subtitle}> Welcome Back ! Please Login to Continue</Text>
             <FormInput
               label="Email"
               placeholder="Enter your email"
@@ -155,6 +159,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
+    marginBottom: 35,
+    color: '#555',
+    textAlign: 'center',
+  },
+  subtitle1: {
+    fontSize: 24,
     marginBottom: 35,
     color: '#555',
     textAlign: 'center',

@@ -1,120 +1,12 @@
-// import React from 'react';
-// import { StyleSheet, View, Text, Button, ScrollView, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
-// import { useRoute, useNavigation } from '@react-navigation/native';
-
-// export default function DriverDetails() {
-//   const route = useRoute();
-//   const navigation = useNavigation();
-//   const { driver } = route.params;
-//   const [playing, setPlaying] = React.useState(false);
-
-//   const onStateChange = (state) => {
-//     if (state === "ended") {
-//       setPlaying(false);
-//       Alert.alert("Video has finished playing!");
-//     }
-//   };
-
-//   const togglePlaying = () => {
-//     setPlaying((prev) => !prev);
-//   };
-
-//   const handleAcceptRequest = () => {
-//     Alert.alert(
-//       "Confirm Accept Request",
-//       "Are you sure you want to accept this request?",
-//       [
-//         {
-//           text: "Cancel",
-//           onPress: () => console.log("Cancel Pressed"),
-//           style: "cancel"
-//         },
-//         { text: "OK", onPress: () => console.log("OK Pressed") }
-//       ]
-//     );
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.safeArea}>
-//       <ScrollView style={styles.container}>
-//         <View style={styles.header}>
-//           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-//             <Text style={styles.backButtonText}>Back</Text>
-//           </TouchableOpacity>
-//           <Text style={styles.title}>Driver Details</Text>
-//         </View>
-//         <View style={styles.content}>
-//           <Text style={styles.name}>{driver.service_provider_name}</Text>
-//           <Text style={styles.info}>Rating: {driver.service_provider_rating !== null ? driver.service_provider_rating : 'Not rated yet'}</Text>
-//           <Text style={styles.info}>Job ID: {driver.job_posting_id}</Text>
-//           <Text style={styles.info}>Job Summary: {driver.job_posting_summary}</Text>
-//           <Text style={styles.info}>Request Status: {driver.request_status}</Text>
-//           <Button title="Accept Request" onPress={handleAcceptRequest} color="green" />
-//         </View>
-//       </ScrollView>
-//     </SafeAreaView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   safeArea: {
-//     flex: 1,
-//     backgroundColor: '#f9f9f9',
-//   },
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#f9f9f9',
-//   },
-//   header: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     paddingVertical: 10,
-//     paddingHorizontal: 20,
-//     backgroundColor: '#fff',
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#ddd',
-//   },
-//   backButton: {
-//     marginRight: 10,
-//   },
-//   backButtonText: {
-//     fontSize: 16,
-//     color: '#007BFF',
-//   },
-//   title: {
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//   },
-//   content: {
-//     padding: 20,
-//     backgroundColor: '#fff',
-//     margin: 10,
-//     borderRadius: 10,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 4,
-//     elevation: 3,
-//   },
-//   name: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     textAlign: 'center',
-//     marginBottom: 10,
-//   },
-//   info: {
-//     fontSize: 16,
-//     marginBottom: 10,
-//     color: '#333',
-//   },
-// });
-
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, ActivityIndicator, Image, ScrollView, Alert, Button, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 const RequestDetails = () => {
   const navigation = useNavigation();

@@ -1,51 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, SafeAreaView, ActivityIndicator, Alert
-} from 'react-native';
-import { FontAwesome, MaterialIcons, AntDesign, Entypo, Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function TripDetails({ route }) {
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [tripDetails, setTripDetails] = useState(null);
-  const [receiptDetails, setReceiptDetails] = useState(null);
+export default function TripDetails() {
   const [loading, setLoading] = useState(true);
-
+  const [tripDetails, setTripDetails] = useState(null);
   const navigation = useNavigation();
-  const hiringId = route?.params?.hiringId;
+  const route = useRoute();
+  const hiringId = route.params.hiringId;
 
   useEffect(() => {
-    if (!hiringId) {
-      Alert.alert('Error', 'Hiring ID is not provided.');
-      navigation.goBack();  // Navigate back if there's no hiringId
-      return;
-    }
-
     const fetchTripDetails = async () => {
       try {
         const token = await AsyncStorage.getItem('authToken');
         if (!token) {
-          Alert.alert('Error', 'No token found');
-          return;
+          throw new Error('No token found');
         }
 
-        const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/api/user/trip-details/${hiringId}/`, {
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/user/trip-details/${hiringId}/`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
 
-        if (response.status === 200) {
-          setTripDetails(response.data.trip);
-          setReceiptDetails(response.data.receipt);
+        if (response.ok) {
+          const data = await response.json();
+          setTripDetails(data);
         } else {
-          Alert.alert('Error', 'Failed to fetch trip details');
+          const errorData = await response.json();
+          Alert.alert('Error', errorData.message || 'Failed to fetch trip details.');
         }
       } catch (error) {
-        console.error("Error fetching trip details:", error);
-        Alert.alert('Error', 'Failed to fetch trip details. Please check if the hiring ID is correct.');
+        console.error('Error fetching trip details:', error);
+        Alert.alert('Error', 'An error occurred while fetching trip details.');
       } finally {
         setLoading(false);
       }
@@ -53,6 +42,31 @@ export default function TripDetails({ route }) {
 
     fetchTripDetails();
   }, [hiringId]);
+
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'N/A';
+    const date = new Date(dateTimeString);
+    const options = {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    };
+    return date.toLocaleString('en-US', options);
+  };
+
+  const formatServicePeriod = (servicePeriodString) => {
+    if (!servicePeriodString) return 'N/A';
+    const [start, end] = servicePeriodString.split(' - ');
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    const formattedStart = startDate.toLocaleDateString('en-GB', options);
+    const formattedEnd = endDate.toLocaleDateString('en-GB', options);
+    return `${formattedStart} to ${formattedEnd}`;
+  };
 
   if (loading) {
     return (
@@ -62,122 +76,62 @@ export default function TripDetails({ route }) {
     );
   }
 
-  if (!tripDetails || !receiptDetails) {
+  if (!tripDetails) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.errorMessage}>No trip information available. Please try again later.</Text>
+        <Text style={styles.errorMessage}>No trip details available. Please try again later.</Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        {/* Back Button */}
+      <View style={styles.container}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
 
-        <Text style={styles.heading}>Trip Details</Text>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Driver:</Text>
-          <Text style={styles.value}>{tripDetails.driverName}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Driver License:</Text>
-          <Text style={styles.value}>{tripDetails.driverLicense}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Driver Phone:</Text>
-          <Text style={styles.value}>{tripDetails.driverPhone}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Driver Rating:</Text>
-          <Text style={styles.value}>{tripDetails.driverRating}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Destination:</Text>
-          <Text style={styles.value}>{tripDetails.destination}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Rate:</Text>
-          <Text style={styles.value}>{tripDetails.rate}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Days to go:</Text>
-          <Text style={styles.value}>{tripDetails.daysToGo}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Service Provider Type:</Text>
-          <Text style={styles.value}>{tripDetails.serviceProviderType}</Text>
-        </View>
-        <View style={styles.detailContainer}>
-          <Text style={styles.label}>Job Summary:</Text>
-          <Text style={styles.value}>{tripDetails.jobSummary}</Text>
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.button, styles.viewReceiptButton]} onPress={() => setShowReceipt(true)}>
-            <FontAwesome name="file-text" size={20} color="white" />
-            <Text style={styles.buttonText}>View Receipt</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.editTripButton]} onPress={() => {}}>
-            <MaterialIcons name="edit" size={20} color="white" />
-            <Text style={styles.buttonText}>Edit Trip (Disabled)</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.termsButton]} onPress={() => {}}>
-            <AntDesign name="infocirlce" size={20} color="white" />
-            <Text style={styles.buttonText}>Terms and Conditions</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showReceipt}
-          onRequestClose={() => {
-            setShowReceipt(!showReceipt);
-          }}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.receipt}>
-              <Text style={styles.receiptHeading}>Payment Receipt</Text>
-              <View style={styles.detailContainer}>
-                <Text style={styles.label}>Amount:</Text>
-                <Text style={styles.value}>{receiptDetails.amount}</Text>
-              </View>
-              <View style={styles.detailContainer}>
-                <Text style={styles.label}>Payment Method:</Text>
-                <Text style={styles.value}>{receiptDetails.paymentMethod}</Text>
-              </View>
-              <View style={styles.detailContainer}>
-                <Text style={styles.label}>Transaction ID:</Text>
-                <Text style={styles.value}>{receiptDetails.transactionId}</Text>
-              </View>
-              <View style={styles.detailContainer}>
-                <Text style={styles.label}>Payment Date:</Text>
-                <Text style={styles.value}>{receiptDetails.paymentDate}</Text>
-              </View>
-              <View style={styles.detailContainer}>
-                <Text style={styles.label}>Customer:</Text>
-                <Text style={styles.value}>{receiptDetails.customerName}</Text>
-              </View>
-              <View style={styles.detailContainer}>
-                <Text style={styles.label}>Service Provider:</Text>
-                <Text style={styles.value}>{receiptDetails.serviceProviderName}</Text>
-              </View>
-              <TouchableOpacity style={[styles.button, styles.printButton]} onPress={() => {}}>
-                <Entypo name="printer" size={20} color="white" />
-                <Text style={styles.buttonText}>Print Receipt</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={() => setShowReceipt(false)}>
-                <Text style={styles.buttonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.card}>
+          <Text style={styles.cardHeading}>Job Posting Details</Text>
+          <View style={styles.detailContainer}>
+            <FontAwesome name="wrench" size={24} color="black" />
+            <Text style={styles.value}>{tripDetails.jobPosting?.serviceType || 'N/A'}</Text>
           </View>
-        </Modal>
-      </ScrollView>
+          <View style={styles.detailContainer}>
+            <Ionicons name="calendar" size={24} color="black" />
+            <Text style={styles.value}>{formatServicePeriod(tripDetails.jobPosting?.servicePeriod)}</Text>
+          </View>
+          <View style={styles.detailContainer}>
+            <FontAwesome name="money" size={24} color="black" />
+            <Text style={styles.value}>{tripDetails.jobPosting?.serviceRate || 'N/A'}</Text>
+          </View>
+          <View style={styles.detailContainer}>
+            <MaterialIcons name="location-on" size={24} color="black" />
+            <Text style={styles.value}>{tripDetails.jobPosting?.onboardingLocation || 'N/A'}</Text>
+          </View>
+          <View style={styles.detailContainer}>
+            <Ionicons name="information-circle" size={24} color="black" />
+            <Text style={styles.value}>{tripDetails.jobPosting?.jobSummary || 'N/A'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardHeading}>Transaction Details</Text>
+          <View style={styles.detailContainer}>
+            <FontAwesome name="money" size={24} color="black" />
+            <Text style={styles.value}>{tripDetails.transaction?.rate || 'N/A'}</Text>
+          </View>
+          <View style={styles.detailContainer}>
+            <Ionicons name="time" size={24} color="black" />
+            <Text style={styles.value}>{formatDateTime(tripDetails.transaction?.datetime)}</Text>
+          </View>
+          <View style={styles.detailContainer}>
+            <Ionicons name="card" size={24} color="black" />
+            <Text style={styles.value}>{tripDetails.transaction?.paymentMethod || 'N/A'}</Text>
+          </View>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -185,7 +139,7 @@ export default function TripDetails({ route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f8f8', // Optional: a background color for the safe area
+    backgroundColor: '#f8f8f8',
   },
   container: {
     flex: 1,
@@ -201,78 +155,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'black',
   },
-  heading: {
-    fontSize: 24,
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardHeading: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
+    color: '#333',
+    marginBottom: 12,
   },
   detailContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
   value: {
     fontSize: 16,
-  },
-  buttonContainer: {
-    marginTop: 20,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    marginBottom: 10,
-    width: 200,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  viewReceiptButton: {
-    backgroundColor: '#1e90ff',
-    left: 70,
-  },
-  editTripButton: {
-    backgroundColor: '#28a745',
-    left: 70,
-  },
-  termsButton: {
-    backgroundColor: '#ff6347',
-    left: 70,
-  },
-  printButton: {
-    backgroundColor: '#000',
-    alignSelf: 'center',
-    marginTop: 10,
-  },
-  closeButton: {
-    backgroundColor: '#ff6347',
-    alignSelf: 'center',
-    marginTop: 10,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  receipt: {
-    width: 300,
-    padding: 20,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-  },
-  receiptHeading: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    marginLeft: 16,
+    color: '#555',
   },
   errorMessage: {
     textAlign: 'center',

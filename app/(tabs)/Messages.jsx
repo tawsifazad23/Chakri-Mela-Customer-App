@@ -4,6 +4,9 @@
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Ionicons } from '@expo/vector-icons';
 // import { EventSourcePolyfill } from 'event-source-polyfill';
+// import { LogBox } from 'react-native';
+// LogBox.ignoreLogs(['Warning: ...']);
+// LogBox.ignoreAllLogs();
 
 // const Messages = () => {
 //   const [conversations, setConversations] = useState([]);
@@ -12,8 +15,8 @@
 //   const navigation = useNavigation();
 
 //   useEffect(() => {
-//     let eventSource;  // Declare a variable to hold the event source
-  
+//     let eventSource;
+
 //     const setupSSE = async () => {
 //       try {
 //         const token = await AsyncStorage.getItem('authToken');
@@ -21,16 +24,15 @@
 //           Alert.alert('Error', 'No token found');
 //           return;
 //         }
-  
+
 //         eventSource = new EventSourcePolyfill(`${process.env.EXPO_PUBLIC_API_URL}/api/user/conversations/`, {
 //           headers: {
 //             Authorization: `Bearer ${token}`,
 //           },
 //         });
-  
+
 //         eventSource.onmessage = (event) => {
 //           const data = JSON.parse(event.data);
-//           // Sort conversations: empty conversations at the top, then by last message time
 //           const sortedConversations = data.sort((a, b) => {
 //             if (a.last_message.message === 'Tap to Start Chat!') return -1;
 //             if (b.last_message.message === 'Tap to Start Chat!') return 1;
@@ -39,27 +41,26 @@
 //           setConversations(sortedConversations);
 //           setFilteredConversations(sortedConversations);
 //         };
-  
+
 //         eventSource.onerror = (error) => {
 //           console.error('EventSource error:', error);
 //           eventSource.close();
 //         };
-  
+
 //       } catch (error) {
 //         console.error('SSE setup error:', error);
 //         Alert.alert('Error', 'Failed to set up real-time updates');
 //       }
 //     };
-  
-//     setupSSE();  // Call the setup function
-  
+
+//     setupSSE();
+
 //     return () => {
 //       if (eventSource) {
-//         eventSource.close();  // Clean up the event source when the component unmounts
+//         eventSource.close();
 //       }
 //     };
 //   }, []);
-  
 
 //   const handleChatPress = async (conversation) => {
 //     try {
@@ -128,6 +129,7 @@
 //             placeholder="Search"
 //             value={searchQuery}
 //             onChangeText={handleSearch}
+//             placeholderTextColor="#ccc" // Placeholder color for better UX
 //           />
 //         </View>
 //       </View>
@@ -177,26 +179,33 @@
 // const styles = StyleSheet.create({
 //   container: {
 //     flex: 1,
-//     backgroundColor: '#fff',
+//     backgroundColor: '#fafafa', // Light background color
 //   },
 //   header: {
 //     padding: 10,
-//     backgroundColor: '#f9f9f9',
+//     backgroundColor: '#ffffff',
 //     borderBottomWidth: 1,
 //     borderBottomColor: '#ddd',
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.1,
+//     shadowRadius: 4,
+//     elevation: 3,
 //   },
 //   title: {
-//     fontSize: 24,
+//     fontSize: 26, // Larger font size for the title
 //     fontWeight: 'bold',
 //     textAlign: 'left',
 //     marginBottom: 10,
+//     color: '#333', // Darker color for better readability
 //   },
 //   searchContainer: {
 //     flexDirection: 'row',
 //     alignItems: 'center',
 //     backgroundColor: '#f0f0f0',
-//     borderRadius: 5,
-//     paddingHorizontal: 10,
+//     borderRadius: 10, // Rounded corners for better aesthetics
+//     paddingHorizontal: 12,
+//     paddingVertical: 6, // Added padding for better touch area
 //   },
 //   searchIcon: {
 //     marginRight: 10,
@@ -204,6 +213,8 @@
 //   searchBar: {
 //     flex: 1,
 //     height: 40,
+//     fontSize: 16,
+//     color: '#333', // Darker text color
 //   },
 //   noConversationsContainer: {
 //     flex: 1,
@@ -212,7 +223,7 @@
 //   },
 //   noConversationsText: {
 //     fontSize: 18,
-//     color: '#777',
+//     color: '#999',
 //   },
 //   chatList: {
 //     padding: 10,
@@ -221,12 +232,17 @@
 //     flexDirection: 'row',
 //     alignItems: 'center',
 //     padding: 15,
-//     backgroundColor: '#f9f9f9',
-//     marginBottom: 10,
-//     borderRadius: 5,
+//     backgroundColor: '#fff',
+//     marginBottom: 12, // Increased spacing between items
+//     borderRadius: 10,
 //     borderWidth: 1,
 //     borderColor: '#ddd',
 //     position: 'relative',
+//     shadowColor: '#000',
+//     shadowOffset: { width: 0, height: 2 },
+//     shadowOpacity: 0.1,
+//     shadowRadius: 4,
+//     elevation: 2,
 //   },
 //   chatItem: {
 //     flexDirection: 'row',
@@ -234,10 +250,10 @@
 //     flex: 1,
 //   },
 //   profilePic: {
-//     width: 40,
-//     height: 40,
-//     borderRadius: 20,
-//     marginRight: 10,
+//     width: 50, // Slightly larger profile picture
+//     height: 50,
+//     borderRadius: 25,
+//     marginRight: 15, // More space between image and text
 //   },
 //   chatContent: {
 //     flex: 1,
@@ -245,7 +261,8 @@
 //   },
 //   chatTitle: {
 //     fontSize: 18,
-//     fontWeight: 'bold',
+//     fontWeight: '600', // Slightly lighter font weight for better readability
+//     color: '#333',
 //   },
 //   chatMessage: {
 //     marginTop: 3,
@@ -254,18 +271,19 @@
 //   },
 //   messageTime: {
 //     fontSize: 12,
-//     color: '#888',
+//     color: '#aaa',
 //   },
 //   tapToStartText: {
 //     fontSize: 14,
 //     color: '#888',
 //     marginTop: 5,
+//     fontWeight: '600',
 //   },
 //   unseenCount: {
-//     backgroundColor: '#316FF6',
-//     borderRadius: 10,
-//     width: 20,
-//     height: 20,
+//     backgroundColor: '#FF6347', // Use a more vibrant color for unseen message count
+//     borderRadius: 12,
+//     width: 24,
+//     height: 24,
 //     alignItems: 'center',
 //     justifyContent: 'center',
 //     position: 'absolute',
@@ -275,7 +293,7 @@
 //   unseenCountText: {
 //     color: 'white',
 //     fontWeight: 'bold',
-//     fontSize: 12,
+//     fontSize: 14,
 //   },
 // });
 
@@ -287,6 +305,10 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Warning: ...']);
+LogBox.ignoreAllLogs();
 
 const Messages = () => {
   const [conversations, setConversations] = useState([]);
@@ -295,8 +317,8 @@ const Messages = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    let eventSource;  // Declare a variable to hold the event source
-  
+    let eventSource;
+
     const setupSSE = async () => {
       try {
         const token = await AsyncStorage.getItem('authToken');
@@ -304,45 +326,46 @@ const Messages = () => {
           Alert.alert('Error', 'No token found');
           return;
         }
-  
+
         eventSource = new EventSourcePolyfill(`${process.env.EXPO_PUBLIC_API_URL}/api/user/conversations/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-  
+
         eventSource.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          // Sort conversations: empty conversations at the top, then by last message time
+
+          // Sorting conversations based on the latest message time
           const sortedConversations = data.sort((a, b) => {
-            if (a.last_message.message === 'Tap to Start Chat!') return -1;
-            if (b.last_message.message === 'Tap to Start Chat!') return 1;
-            return new Date(b.last_message.time) - new Date(a.last_message.time);
+            const lastMessageA = a.last_message.time ? new Date(a.last_message.time) : 0;
+            const lastMessageB = b.last_message.time ? new Date(b.last_message.time) : 0;
+            return lastMessageB - lastMessageA;
           });
+
           setConversations(sortedConversations);
           setFilteredConversations(sortedConversations);
         };
-  
+
         eventSource.onerror = (error) => {
           console.error('EventSource error:', error);
           eventSource.close();
         };
-  
+
       } catch (error) {
         console.error('SSE setup error:', error);
         Alert.alert('Error', 'Failed to set up real-time updates');
       }
     };
-  
-    setupSSE();  // Call the setup function
-  
+
+    setupSSE();
+
     return () => {
       if (eventSource) {
-        eventSource.close();  // Clean up the event source when the component unmounts
+        eventSource.close();
       }
     };
   }, []);
-  
 
   const handleChatPress = async (conversation) => {
     try {
@@ -411,6 +434,7 @@ const Messages = () => {
             placeholder="Search"
             value={searchQuery}
             onChangeText={handleSearch}
+            placeholderTextColor="#ccc"
           />
         </View>
       </View>
@@ -460,26 +484,33 @@ const Messages = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fafafa', // Light background color
   },
   header: {
     padding: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26, // Larger font size for the title
     fontWeight: 'bold',
     textAlign: 'left',
     marginBottom: 10,
+    color: '#333', // Darker color for better readability
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-    paddingHorizontal: 10,
+    borderRadius: 10, // Rounded corners for better aesthetics
+    paddingHorizontal: 12,
+    paddingVertical: 6, // Added padding for better touch area
   },
   searchIcon: {
     marginRight: 10,
@@ -487,6 +518,8 @@ const styles = StyleSheet.create({
   searchBar: {
     flex: 1,
     height: 40,
+    fontSize: 16,
+    color: '#333', // Darker text color
   },
   noConversationsContainer: {
     flex: 1,
@@ -495,7 +528,7 @@ const styles = StyleSheet.create({
   },
   noConversationsText: {
     fontSize: 18,
-    color: '#777',
+    color: '#999',
   },
   chatList: {
     padding: 10,
@@ -504,12 +537,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#f9f9f9',
-    marginBottom: 10,
-    borderRadius: 5,
+    backgroundColor: '#fff',
+    marginBottom: 12, // Increased spacing between items
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ddd',
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   chatItem: {
     flexDirection: 'row',
@@ -517,10 +555,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profilePic: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
+    width: 50, // Slightly larger profile picture
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15, // More space between image and text
   },
   chatContent: {
     flex: 1,
@@ -528,7 +566,8 @@ const styles = StyleSheet.create({
   },
   chatTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600', // Slightly lighter font weight for better readability
+    color: '#333',
   },
   chatMessage: {
     marginTop: 3,
@@ -537,19 +576,19 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 12,
-    color: '#888',
+    color: '#aaa',
   },
   tapToStartText: {
     fontSize: 14,
     color: '#888',
     marginTop: 5,
-    fontWeight: 'bold', // Make the "Tap to Start Chat!" text bold
+    fontWeight: '600',
   },
   unseenCount: {
-    backgroundColor: '#316FF6',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    backgroundColor: '#FF6347', // Use a more vibrant color for unseen message count
+    borderRadius: 12,
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
@@ -559,7 +598,7 @@ const styles = StyleSheet.create({
   unseenCountText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 14,
   },
 });
 
