@@ -28,7 +28,7 @@ const FormInput = ({ label, value, onChangeText, placeholder, secureTextEntry, k
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('john.doe@example.com');
-  const [password, setPassword] = useState('password1233');
+  const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const router = useRouter();
